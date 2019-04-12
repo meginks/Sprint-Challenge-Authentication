@@ -1,24 +1,13 @@
 const axios = require('axios');
 const { authenticate } = require('../auth/authenticate');
 const bcrypt = require('bcryptjs'); 
-const jwt = require('jsonwebtoken');
+const tokenservice = require('./tokenservice.js');
 const Users = require('./users.js');
 module.exports = server => {
   server.post('/api/register', register);
   server.post('/api/login', login);
   server.get('/api/jokes', authenticate, getJokes);
 }; 
-
-function generateToken(user) {
-  const payload = {
-    subject: user.id, 
-    username: user.username
-  }; 
-  const options = {
-    expiresIn: '1d'
-  }; 
-  return jwt.sign(payload, secret.jwtSecret, options);
-}
 
 function register(req, res) {
   // implement user registration 
@@ -42,7 +31,7 @@ function login(req, res) {
   .first()
   .then(user => {
     if (user && bcrypt.compareSync(password, user.password)) {
-      const token = generateToken(user); 
+      const token = tokenservice.generateToken(user); 
       res.status(200).json({
         message: `Welcome to Dad Jokes, ${user.username}!`, 
         token
@@ -60,7 +49,6 @@ function getJokes(req, res) {
   const requestOptions = {
     headers: { accept: 'application/json' },
   };
-  authenticate(req.body);
   axios
     .get('https://icanhazdadjoke.com/search', requestOptions)
     .then(response => {
